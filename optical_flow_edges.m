@@ -4,8 +4,8 @@
 %% Evaluate image gradient
 
 clear all; clc; close all;
-im1col = imread('circle_zoom.jpg');
-I2 = rgb2gray(imread('circle_zoom1.jpg'));
+im1col = imread('images\shapes_move.png');
+I2 = rgb2gray(imread('images\shapes_move_xy135.png'));
 % im1col = imresize(im1col,.4);
 % I2 = imresize(I2,0.4);
 I1 = rgb2gray(im1col);
@@ -184,9 +184,9 @@ quiver(point(1:stride:tot_points,2)',point(1:stride:tot_points,1)',...
 
 Flow_x = sum(flow_mag(find(flow_mag)).*cos(angle(find(flow_mag))));
 Flow_y = sum(flow_mag(find(flow_mag)).*sin(angle(find(flow_mag))));
-Flow_dir = atan2(Flow_x,Flow_y);
-% Flow_mag = hypot(Flow_x,Flow_y)/size(find(flow_mag),2) % average of all flow vectors
-Flow_mag = mode(flow_mag(find(flow_mag)))              % mode 
+Flow_dir = atan2(Flow_y,Flow_x);
+Flow_mag = hypot(Flow_x,Flow_y)/size(find(flow_mag),2) % average of all flow vectors
+% Flow_mag = mode(flow_mag(find(flow_mag)))              % mode 
 
 Flow_dir*180/pi
 
@@ -205,12 +205,13 @@ hold on;
 % FOE = pinv([-tan(angle(is_flow)+pi/2)' ones(size(angle(is_flow)))'])*...
 %                 (point(is_flow,2)-tan(angle(is_flow)'+pi/2).*point(is_flow,1))
 
-
-is_flow = (round(flow_mag)<2&round(angle-pi/2,1)~=0&round(angle+pi/2,1)~=0);
+% keep low flow magnitude edge points and remove singularity points
+flow_mag_thresh = 2;
+is_flow = (round(flow_mag)<flow_mag_thresh&round(angle-pi/2,1)~=0&round(angle+pi/2,1)~=0);
 plot((point(is_flow,2)-tan(angle(is_flow)').*point(is_flow,1))+...
     tan(angle(is_flow)').*(1:510),1:510);
 
-
+% intersection of tangents to the edges at points with least flow magnitude
 FOE = pinv([-tan(angle(is_flow))' ones(size(angle(is_flow)))'])*...
                 (point(is_flow,2)-tan(angle(is_flow)').*point(is_flow,1))
 
@@ -219,6 +220,11 @@ hold on; plot(FOE(2),FOE(1),'g*');
 hold on; quiver(FOE(2),FOE(1),Flow_mag*cos(Flow_dir),-Flow_mag*sin(Flow_dir),10,'Color','k');
 
 
+%% Evaluate if it a translation or scaling 
 
-
+if(Flow_mag<2)
+    disp('Scaling');
+else 
+    disp('Translation');
+end
 
