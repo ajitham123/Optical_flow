@@ -1,14 +1,20 @@
+function [FOE, Flow_x, Flow_y] = optical_flow_edges(im1col, im2col, graphics)
+
 %% Program to find the optical flow perpendicular to the edges in the image
 %  Author: Ajith Anil Meera, 28th July 2017
 
+if(~exist('graphics', 'var') || isempty(graphics))
+    graphics = false;
+end
+
 %% Evaluate image gradient
 
-clear all; clc; close all;
-im1col = imread('images\shapes_move.png');
-I2 = rgb2gray(imread('images\shapes_move_xy135.png'));
+clc; close all;
 % im1col = imresize(im1col,.4);
 % I2 = imresize(I2,0.4);
+
 I1 = rgb2gray(im1col);
+I2 = rgb2gray(im2col);
 
 siz = size(I1);
 % figure
@@ -174,11 +180,13 @@ point = point(1:tot_points,:);
 
 stride = 1;
 flow_scale = 1;
-figure; imshow(im1col);
-hold on;
-quiver(point(1:stride:tot_points,2)',point(1:stride:tot_points,1)',...
-       flow_mag(1:stride:tot_points).*cos(angle(1:stride:tot_points)),...
-      -flow_mag(1:stride:tot_points).*sin(angle(1:stride:tot_points)),flow_scale,'Color','r');
+if graphics
+    figure; imshow(im1col);
+    hold on;
+    quiver(point(1:stride:tot_points,2)',point(1:stride:tot_points,1)',...
+        flow_mag(1:stride:tot_points).*cos(angle(1:stride:tot_points)),...
+        -flow_mag(1:stride:tot_points).*sin(angle(1:stride:tot_points)),flow_scale,'Color','r');
+end
 
 %% Estimate the resultant flow direction
 
@@ -197,7 +205,7 @@ Flow_dir*180/pi
 % is_flow = (round(flow_mag)<3&round(angle,1)~=0); 
 
 % is_flow = find(round(angle*180/pi)>0&round(angle*180/pi)<90);
-hold on;
+
 % plot((point(is_flow,2)-tan(angle(is_flow)'+pi/2).*point(is_flow,1))+...
 %     tan(angle(is_flow)'+pi/2).*(1:510),1:510);
 % 
@@ -205,19 +213,22 @@ hold on;
 % FOE = pinv([-tan(angle(is_flow)+pi/2)' ones(size(angle(is_flow)))'])*...
 %                 (point(is_flow,2)-tan(angle(is_flow)'+pi/2).*point(is_flow,1))
 
-% keep low flow magnitude edge points and remove singularity points
 flow_mag_thresh = 2;
+
+% keep low flow magnitude edge points and remove singularity points
 is_flow = (round(flow_mag)<flow_mag_thresh&round(angle-pi/2,1)~=0&round(angle+pi/2,1)~=0);
-plot((point(is_flow,2)-tan(angle(is_flow)').*point(is_flow,1))+...
-    tan(angle(is_flow)').*(1:510),1:510);
 
 % intersection of tangents to the edges at points with least flow magnitude
 FOE = pinv([-tan(angle(is_flow))' ones(size(angle(is_flow)))'])*...
-                (point(is_flow,2)-tan(angle(is_flow)').*point(is_flow,1))
+    (point(is_flow,2)-tan(angle(is_flow)').*point(is_flow,1));
 
-
-hold on; plot(FOE(2),FOE(1),'g*');            
-hold on; quiver(FOE(2),FOE(1),Flow_mag*cos(Flow_dir),-Flow_mag*sin(Flow_dir),10,'Color','k');
+if graphics
+    hold on;
+    plot((point(is_flow,2)-tan(angle(is_flow)').*point(is_flow,1))+...
+        tan(angle(is_flow)').*(1:510),1:510);
+    hold on; plot(FOE(2),FOE(1),'g*');
+    hold on; quiver(FOE(2),FOE(1),Flow_mag*cos(Flow_dir),-Flow_mag*sin(Flow_dir),10,'Color','k');
+end
 
 
 %% Evaluate if it a translation or scaling 
@@ -225,6 +236,9 @@ hold on; quiver(FOE(2),FOE(1),Flow_mag*cos(Flow_dir),-Flow_mag*sin(Flow_dir),10,
 if(Flow_mag<2)
     disp('Scaling');
 else 
-    disp('Translation');
+    disp('Translation or scaling');
 end
 
+
+
+end
