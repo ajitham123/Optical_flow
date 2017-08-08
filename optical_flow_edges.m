@@ -234,7 +234,7 @@ end
 %% Evaluate if it a translation or scaling 
 
 if(Flow_mag<2)
-    disp('Scaling');
+    disp('Pure scaling');
 else 
     disp('Translation or scaling');
 end
