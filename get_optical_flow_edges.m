@@ -5,13 +5,19 @@ if(~exist('graphics', 'var') || isempty(graphics))
 end
 
 %% Program to find the optical flow perpendicular to the edges in the image
-%  Author: Ajith Anil Meera, 28th July 2017
+%  Author: Ajith Anil Meera, 28th July 2017.
+if(size(I1,3) == 3)
+    I1 = rgb2gray(I1);
+    I2 = rgb2gray(I2);
+end
 
 %% Evaluate image gradient
 siz = size(I1);
 % figure
 % imshow(I)
-[Gmag, Gdir] = imgradient(I1,'prewitt');
+[dx, dy] = imgradientxy(I1,'sobel');
+Gmag = sqrt(dx.^2 + dy.^2);
+Gdir = atan2(-dy,dx)*180/pi;    % in angles
 
 if(graphics)
     figure
@@ -20,7 +26,17 @@ if(graphics)
 end
 
 %% Edge detection using Canny edge detector
-I1_edge = edge(I1,'Canny');
+% this can be sped up by using subsampling to get an idea of the mean abs
+% gradients.
+adx = abs(dx);
+ady = abs(dy);
+madx = mean(mean(adx));
+mady = mean(mean(ady));
+edge_factor = 2.5;
+ADX = adx >= edge_factor * madx;
+ADY = ady >= edge_factor * mady;
+I1_edge = ADX | ADY;
+
 if(graphics)
     figure; imshow(I1_edge);
 end
