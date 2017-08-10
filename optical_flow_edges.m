@@ -9,7 +9,7 @@ end
 
 %% Evaluate image gradient
 
-clc; close all;
+% clc; close all; % better not to do this in a function
 % im1col = imresize(im1col,.4);
 % I2 = imresize(I2,0.4);
 
@@ -29,6 +29,28 @@ Gdir = atan2(-dy,dx)*180/pi;    % in angles
 
 %% Edge detection using Canny edge detector
 I1_edge = edge(I1,'Canny',0.1);
+
+% this can be sped up by using subsampling to get an idea of the mean abs
+% gradients.
+adx = abs(dx);
+ady = abs(dy);
+madx = mean(mean(adx));
+mady = mean(mean(ady));
+edge_factor = 2.5;
+ADX = adx >= edge_factor * madx;
+ADY = ady >= edge_factor * mady;
+Sobel_edge = ADX | ADY;
+
+if(graphics)
+    figure();
+    subplot(1,2,1);
+    imshow(I1_edge);
+    title('Canny edge');
+    subplot(1,2,2);
+    imshow(Sobel_edge);
+    title('Sobel edge');
+end
+
 % figure; imshow(I1_edge);
 I1 = double(I1);
 I2 = double(I2);
