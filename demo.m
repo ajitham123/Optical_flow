@@ -1,10 +1,10 @@
-%% Code for 2 images
+%% Optical flow and FOE for 2 images
 clc; clear all; close all;
 im_scale = false;
 
 % load images:
-I1 = imread('images/star_move.jpg');
-I2 = imread('images/star_move_xy-135.jpg');
+I1 = imread('images/star_move.png');
+I2 = imread('images/star_move_xy-135.png');
 if im_scale
     I1 = imresize(I1,.4);
     I2 = imresize(I2,0.4);
@@ -17,7 +17,7 @@ graphics = true;
 % find FOE
 FOE = find_FOE(point, flow_mag, angle,graphics)
 
-%% Code for a video
+%% Optical flow and FOE for a video
 
 clc; clear all; close all;
 graphics = true;
