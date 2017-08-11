@@ -13,7 +13,7 @@ best_inliers = zeros(1,n_inliers);
 best_FOE = [0 0];
 best_inters = Inf;
 
-for kk = 1:10000
+for kk = 1:1000
     inliers = randsample(find(is_flow),n_inliers);
     FOE = pinv([-tan(angle(inliers))' ones(size(angle(inliers)))'])*...
         (point(inliers,2)-tan(angle(inliers)').*point(inliers,1));

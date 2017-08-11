@@ -1,4 +1,4 @@
-function [point, flow_mag, angle] = get_optical_flow_edges(I1, I2, graphics,im_scale)
+function [point, flow_mag, angle] = get_optical_flow_edges(I1, I2, graphics)
 %% Program to find the optical flow perpendicular to the edges in the image
 %  Author: Ajith Anil Meera, 28th July 2017
 
@@ -10,12 +10,6 @@ end
 if(size(I1,3) == 3)
     I1 = rgb2gray(I1);
     I2 = rgb2gray(I2);
-end
-
-% scale the image if it is too big
-if im_scale
-    I1 = imresize(I1,.4);
-    I2 = imresize(I2,0.4);
 end
 
 siz = size(I1);
@@ -43,9 +37,9 @@ ADY = ady >= edge_factor * mady;
 I1_edge = ADX | ADY;
 % I1_edge = edge(I1,'Canny',0.1);
 
-if(graphics)
-    figure; imshow(I1_edge);
-end
+% if(graphics)
+%     figure(2); imshow(I1_edge);
+% end
 I1 = double(I1);
 I2 = double(I2);
 
@@ -194,10 +188,10 @@ point = point(1:tot_points,:);
 
 %% Plot optical flow with a stride
 
-stride = 1;
-flow_scale = 1;
+stride = 5;
+flow_scale = 5;
 if graphics
-    figure; imshow(I1/255);
+    figure(3); imshow(I1/255);
     hold on;
     quiver(point(1:stride:tot_points,2)',point(1:stride:tot_points,1)',...
         flow_mag(1:stride:tot_points).*cos(angle(1:stride:tot_points)),...
