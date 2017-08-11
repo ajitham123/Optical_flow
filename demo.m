@@ -1,10 +1,14 @@
+clc; clear all; close all;
+
 % load images:
-Im1 = imread('images/shapes_move.png');
-Im2 = imread('images/shapes_move_xy135.png');
+Im1 = imread('images/frames99.jpg');
+Im2 = imread('images/frames100.jpg');
 
 % determine the individual flow vectors:
 graphics = true;
-[point, flow_x, flow_y] = get_optical_flow_edges(Im1, Im2, graphics);
+im_scale = true;
+[point, flow_mag, angle] = get_optical_flow_edges(Im1, Im2, graphics, im_scale);
 
-% post-process (find FoE, etc.)
+% find FOE
+FOE = find_FOE(point, flow_mag, angle,graphics)
 

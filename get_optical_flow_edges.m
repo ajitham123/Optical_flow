@@ -1,4 +1,4 @@
-function [point, flow_mag, angle] = get_optical_flow_edges(I1, I2, graphics)
+function [point, flow_mag, angle] = get_optical_flow_edges(I1, I2, graphics,im_scale)
 %% Program to find the optical flow perpendicular to the edges in the image
 %  Author: Ajith Anil Meera, 28th July 2017
 
@@ -12,20 +12,22 @@ if(size(I1,3) == 3)
     I2 = rgb2gray(I2);
 end
 
-% clc; close all;
-% im1col = imresize(im1col,.4);
-% I2 = imresize(I2,0.4);
+% scale the image if it is too big
+if im_scale
+    I1 = imresize(I1,.4);
+    I2 = imresize(I2,0.4);
+end
 
 siz = size(I1);
 [dx, dy] = imgradientxy(I1,'sobel');
 Gmag = sqrt(dx.^2 + dy.^2);
 Gdir = atan2(-dy,dx)*180/pi;    % in angles
 
-if(graphics)
-    figure
-    imshowpair(Gmag, Gdir, 'montage');
-    title('Gradient Magnitude, Gmag (left), and Gradient Direction, Gdir (right), using Sobel method')
-end
+% if(graphics)
+%     figure
+%     imshowpair(Gmag, Gdir, 'montage');
+%     title('Gradient Magnitude, Gmag (left), and Gradient Direction, Gdir (right), using Sobel method')
+% end
 
 %% Edge detection using Sobel filter
 
@@ -35,7 +37,7 @@ adx = abs(dx);
 ady = abs(dy);
 madx = mean(mean(adx));
 mady = mean(mean(ady));
-edge_factor = 2.5;
+edge_factor = 12.5;
 ADX = adx >= edge_factor * madx;
 ADY = ady >= edge_factor * mady;
 I1_edge = ADX | ADY;
