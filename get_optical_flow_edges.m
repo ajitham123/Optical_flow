@@ -12,7 +12,7 @@ if(size(I1,3) == 3)
     I2 = rgb2gray(I2);
 end
 
-clc; close all;
+% clc; close all;
 % im1col = imresize(im1col,.4);
 % I2 = imresize(I2,0.4);
 
