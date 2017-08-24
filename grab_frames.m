@@ -3,7 +3,7 @@ clc;
 clear all;
 close all;
 tic;
-vid=VideoReader('VID_20170801_162240862.mp4');
+vid=VideoReader('VID_20170814_133413824.mp4');
 numFrames = vid.NumberOfFrames;
 n=numFrames;
 for i = 1:1:n

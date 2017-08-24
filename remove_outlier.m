@@ -6,7 +6,8 @@ function best_inliers = remove_outlier(point, angle, is_flow)
 
 samp_perc = .5;
 n_inliers = round(size(is_flow(is_flow==1),2)*samp_perc);
-if n_inliers<4
+if n_inliers<5
+    disp('Too few inlier lines');
     n_inliers = size(find(is_flow),2);
 end
 best_inliers = zeros(1,n_inliers);

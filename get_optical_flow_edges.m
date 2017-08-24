@@ -31,10 +31,12 @@ adx = abs(dx);
 ady = abs(dy);
 madx = mean(mean(adx));
 mady = mean(mean(ady));
-edge_factor = 12.5;
+edge_factor = 7.5;
 ADX = adx >= edge_factor * madx;
 ADY = ady >= edge_factor * mady;
 I1_edge = ADX | ADY;
+% I1_edge = imerode(I1_edge,strel('disk',1));
+
 % I1_edge = edge(I1,'Canny',0.1);
 
 % if(graphics)
@@ -93,6 +95,7 @@ for j=1:siz(1)
             best_match = [0 0];
             best_corr  = Inf;
             best_dir   = 1;     % positive direction
+            best_i     = 0;     % best index
             all_corr = zeros(1,2*range+1);
             
             for i = 1:range+1
@@ -137,12 +140,47 @@ for j=1:siz(1)
                     % matches 
                     if corr_d < best_corr
                         best_dir   = corr_dir;
+                        best_i     = i;
                         best_corr  = corr_d;
                         best_match = corr_match;
                     end
                     
                 end
             end
+
+            % sub pixel flow to refine flow magnitudes
+            if best_i-1>=1 && best_i+1<=range+1   % matrix dimension is right
+                if best_dir == 0                  % if best match is at bottom portion
+                    ii = range+2-best_i-1:range+2-best_i+1;
+                    cc = all_corr(ii);
+                    fit  = polyfit(ii,cc,2);      % fit a parabola
+                    i_min = -fit(2)/(2*fit(1));   % minimum correlation index
+                    i_incr = i_min-(range+2-best_i);    % gives the percent increment required
+                    % perform an increment in best matches
+                    if i_incr>0     
+                        x_min = best_match(1)+i_incr*(xb(best_i+1)-best_match(1));
+                        y_min = best_match(2)+i_incr*(yb(best_i+1)-best_match(2));
+                    else
+                        x_min = best_match(1)+i_incr*(xb(best_i-1)-best_match(1));
+                        y_min = best_match(2)+i_incr*(yb(best_i-1)-best_match(2));
+                    end
+                else
+                    ii = range+best_i-1:range+best_i+1;
+                    cc = all_corr(ii);
+                    fit  = polyfit(ii,cc,2);
+                    i_min = -fit(2)/(2*fit(1));
+                    i_incr = i_min-(range+best_i);
+                    if i_incr>0
+                        x_min = best_match(1)+i_incr*(xt(best_i+1)-best_match(1));
+                        y_min = best_match(2)+i_incr*(yt(best_i+1)-best_match(2));
+                    else
+                        x_min = best_match(1)+i_incr*(xt(best_i-1)-best_match(1));
+                        y_min = best_match(2)+i_incr*(yt(best_i-1)-best_match(2));
+                    end
+                end
+                best_match = [x_min y_min];
+            end
+            
             % Plot the correlation 
 %             tot_points
 %             h1 = figure(1); plot(-range:range,all_corr,'r-'); 
@@ -189,7 +227,7 @@ point = point(1:tot_points,:);
 %% Plot optical flow with a stride
 
 stride = 5;
-flow_scale = 5;
+flow_scale = 1;
 if graphics
     figure(3); imshow(I1/255);
     hold on;
