@@ -11,7 +11,7 @@ filename = 'testAnimated.gif';
 Flow_x = sum(flow_mag(find(flow_mag)).*cos(angle(find(flow_mag))));
 Flow_y = sum(flow_mag(find(flow_mag)).*sin(angle(find(flow_mag))));
 Flow_dir = atan2(Flow_y,Flow_x);
-Flow_mag = hypot(Flow_x,Flow_y)/size(find(flow_mag),2) % average of all flow vectors
+Flow_mag = hypot(Flow_x,Flow_y)/size(find(flow_mag),2); % average of all flow vectors
 % Flow_mag = mode(flow_mag(find(flow_mag)))              % mode 
 
 % fprintf('Flow magnitude: %f',Flow_mag);
@@ -31,10 +31,10 @@ FOE = pinv([-tan(angle(is_flow))' ones(size(angle(is_flow)))'])*...
     (point(is_flow,2)-tan(angle(is_flow)').*point(is_flow,1));
 
 if graphics
-%     figure(3); plot(point(is_flow,2),point(is_flow,1),'c*'); hold on;
-%     figure(3); hold on;
-%     plot((point(is_flow,2)-tan(angle(is_flow)').*point(is_flow,1))+...
-%         tan(angle(is_flow)').*(1:510),1:510);
+    figure(3); plot(point(is_flow,2),point(is_flow,1),'c*'); hold on;
+    figure(3); hold on;
+    plot((point(is_flow,2)-tan(angle(is_flow)').*point(is_flow,1))+...
+        tan(angle(is_flow)').*(1:510),1:510);
     figure(3); hold on; plot(FOE(2),FOE(1),'g*');
     figure(3); hold on; quiver(FOE(2),FOE(1),3*Flow_mag*cos(Flow_dir),...
         -3*Flow_mag*sin(Flow_dir),10,'Color','b');

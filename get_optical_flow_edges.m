@@ -1,4 +1,4 @@
-function [point, flow_mag, angle] = get_optical_flow_edges(I1, I2, graphics)
+function [point, flow_mag, angle] = get_optical_flow_edges(I1, I2, graphics,if_sub_pixel)
 %% Program to find the optical flow perpendicular to the edges in the image
 %  Author: Ajith Anil Meera, 28th July 2017
 
@@ -11,6 +11,7 @@ if(size(I1,3) == 3)
     I1 = rgb2gray(I1);
     I2 = rgb2gray(I2);
 end
+
 
 siz = size(I1);
 [dx, dy] = imgradientxy(I1,'sobel');
@@ -27,17 +28,22 @@ Gdir = atan2(-dy,dx)*180/pi;    % in angles
 
 % this can be sped up by using subsampling to get an idea of the mean abs
 % gradients.
-adx = abs(dx);
-ady = abs(dy);
-madx = mean(mean(adx));
-mady = mean(mean(ady));
-edge_factor = 7.5;
-ADX = adx >= edge_factor * madx;
-ADY = ady >= edge_factor * mady;
-I1_edge = ADX | ADY;
-% I1_edge = imerode(I1_edge,strel('disk',1));
+if_canny = 0;
 
-% I1_edge = edge(I1,'Canny',0.1);
+if if_canny
+    I1_edge = edge(I1,'Canny',0.1);
+else
+    adx = abs(dx);
+    ady = abs(dy);
+    madx = mean(mean(adx));
+    mady = mean(mean(ady));
+    edge_factor = 4;
+    ADX = adx >= edge_factor * madx;
+    ADY = ady >= edge_factor * mady;
+    I1_edge = ADX | ADY;
+%     I1_edge = imerode(I1_edge,strel('line',2,90));
+end
+
 
 % if(graphics)
 %     figure(2); imshow(I1_edge);
@@ -149,36 +155,38 @@ for j=1:siz(1)
             end
 
             % sub pixel flow to refine flow magnitudes
-            if best_i-1>=1 && best_i+1<=range+1   % matrix dimension is right
-                if best_dir == 0                  % if best match is at bottom portion
-                    ii = range+2-best_i-1:range+2-best_i+1;
-                    cc = all_corr(ii);
-                    fit  = polyfit(ii,cc,2);      % fit a parabola
-                    i_min = -fit(2)/(2*fit(1));   % minimum correlation index
-                    i_incr = i_min-(range+2-best_i);    % gives the percent increment required
-                    % perform an increment in best matches
-                    if i_incr>0     
-                        x_min = best_match(1)+i_incr*(xb(best_i+1)-best_match(1));
-                        y_min = best_match(2)+i_incr*(yb(best_i+1)-best_match(2));
+            if if_sub_pixel
+                if best_i-1>=1 && best_i+1<=range+1   % matrix dimension is correct
+                    if best_dir == 0                  % if best match is at bottom portion
+                        ii = range+2-best_i-1:range+2-best_i+1;
+                        cc = all_corr(ii);
+                        fit  = polyfit(ii,cc,2);      % fit a parabola
+                        i_min = -fit(2)/(2*fit(1));   % minimum correlation index
+                        i_incr = i_min-(range+2-best_i);    % gives the percent increment required
+                        % perform an increment in best matches
+                        if i_incr>0
+                            x_min = best_match(1)+i_incr*(xb(best_i+1)-best_match(1));
+                            y_min = best_match(2)+i_incr*(yb(best_i+1)-best_match(2));
+                        else
+                            x_min = best_match(1)+i_incr*(xb(best_i-1)-best_match(1));
+                            y_min = best_match(2)+i_incr*(yb(best_i-1)-best_match(2));
+                        end
                     else
-                        x_min = best_match(1)+i_incr*(xb(best_i-1)-best_match(1));
-                        y_min = best_match(2)+i_incr*(yb(best_i-1)-best_match(2));
+                        ii = range+best_i-1:range+best_i+1;
+                        cc = all_corr(ii);
+                        fit  = polyfit(ii,cc,2);
+                        i_min = -fit(2)/(2*fit(1));
+                        i_incr = i_min-(range+best_i);
+                        if i_incr>0
+                            x_min = best_match(1)+i_incr*(xt(best_i+1)-best_match(1));
+                            y_min = best_match(2)+i_incr*(yt(best_i+1)-best_match(2));
+                        else
+                            x_min = best_match(1)+i_incr*(xt(best_i-1)-best_match(1));
+                            y_min = best_match(2)+i_incr*(yt(best_i-1)-best_match(2));
+                        end
                     end
-                else
-                    ii = range+best_i-1:range+best_i+1;
-                    cc = all_corr(ii);
-                    fit  = polyfit(ii,cc,2);
-                    i_min = -fit(2)/(2*fit(1));
-                    i_incr = i_min-(range+best_i);
-                    if i_incr>0
-                        x_min = best_match(1)+i_incr*(xt(best_i+1)-best_match(1));
-                        y_min = best_match(2)+i_incr*(yt(best_i+1)-best_match(2));
-                    else
-                        x_min = best_match(1)+i_incr*(xt(best_i-1)-best_match(1));
-                        y_min = best_match(2)+i_incr*(yt(best_i-1)-best_match(2));
-                    end
+                    best_match = [x_min y_min];
                 end
-                best_match = [x_min y_min];
             end
             
             % Plot the correlation 
@@ -227,13 +235,13 @@ point = point(1:tot_points,:);
 %% Plot optical flow with a stride
 
 stride = 5;
-flow_scale = 1;
+flow_scale = 5;
 if graphics
     figure(3); imshow(I1/255);
     hold on;
-    quiver(point(1:stride:tot_points,2)',point(1:stride:tot_points,1)',...
-        flow_mag(1:stride:tot_points).*cos(angle(1:stride:tot_points)),...
-        -flow_mag(1:stride:tot_points).*sin(angle(1:stride:tot_points)),flow_scale,'Color','r');
+%     quiver(point(1:stride:tot_points,2)',point(1:stride:tot_points,1)',...
+%         flow_mag(1:stride:tot_points).*cos(angle(1:stride:tot_points)),...
+%         -flow_mag(1:stride:tot_points).*sin(angle(1:stride:tot_points)),flow_scale,'Color','r');
 end
 
 end
