@@ -1,0 +1,6 @@
+# depslib dependency file v1.0
+1505035969 source:c:\users\ajith a m\onedrive\windows desktop backup\c_optical_flow\main.cpp
+	<cv.h>
+	<highgui.h>
+	<math.h>
+
