@@ -21,6 +21,7 @@ flow_mag_thresh = 1;
 
 % keep low flow magnitude edge points and remove singularity points
 is_flow = (round(flow_mag)<flow_mag_thresh&round(angle-pi/2,1)~=0&round(angle+pi/2,1)~=0);
+sum(is_flow);
 
 if if_outlier
     is_flow = remove_outlier(point,angle,is_flow);
@@ -31,10 +32,10 @@ FOE = pinv([-tan(angle(is_flow))' ones(size(angle(is_flow)))'])*...
     (point(is_flow,2)-tan(angle(is_flow)').*point(is_flow,1));
 
 if graphics
-    figure(3); plot(point(is_flow,2),point(is_flow,1),'c*'); hold on;
     figure(3); hold on;
     plot((point(is_flow,2)-tan(angle(is_flow)').*point(is_flow,1))+...
         tan(angle(is_flow)').*(1:510),1:510);
+    figure(3); hold on; plot(point(is_flow,2),point(is_flow,1),'c*'); 
     figure(3); hold on; plot(FOE(2),FOE(1),'g*');
     figure(3); hold on; quiver(FOE(2),FOE(1),3*Flow_mag*cos(Flow_dir),...
         -3*Flow_mag*sin(Flow_dir),10,'Color','b');

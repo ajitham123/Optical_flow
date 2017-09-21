@@ -26,6 +26,6 @@ I2 = I2(siz2(1)/2-(FOE(1)-siz1(1)/2)+1-siz1(1)/2:siz2(1)/2-(FOE(1)-siz1(1)/2)+si
     siz2(2)/2-(FOE(2)-siz1(2)/2)+1-siz1(2)/2:siz2(2)/2-(FOE(2)-siz1(2)/2)+siz1(2)/2,:);
 % imshow(I2); hold on; plot(FOE(2),FOE(1),'r*');
 
-% imwrite(I2,['images/indoor_foe_' int2str(FOE(1)) '_' int2str(FOE(2)) '.jpg']);
+%  imwrite(I2,['images/indoor_foe_' int2str(FOE(1)) '_' int2str(FOE(2)) '.jpg']);
 
 end

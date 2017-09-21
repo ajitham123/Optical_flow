@@ -12,11 +12,17 @@ if(size(I1,3) == 3)
     I2 = rgb2gray(I2);
 end
 
-
+% I1 = imgaussfilt(I1,2);
+% I1 = imboxfilt(I1,3);
+% I1 = medfilt2(I1);
 siz = size(I1);
 [dx, dy] = imgradientxy(I1,'sobel');
 Gmag = sqrt(dx.^2 + dy.^2);
 Gdir = atan2(-dy,dx)*180/pi;    % in angles
+% dx(201,1:500)
+% dy(201,1:500)
+% Gdir(201,1:500)
+
 
 % if(graphics)
 %     figure
@@ -94,7 +100,9 @@ for j=1:siz(1)
                 yt = point(tot_points,1):-1:point(tot_points,1)-range;
                 xt = round(((yt-point(tot_points,1))/tan(-angle(tot_points)))+point(tot_points,2));
             end
-            
+%             xb
+%             pause(1)
+
             % SSD Correlation along the line and evaluate optical flow
             
             window = 15;        % should be odd number
@@ -111,8 +119,10 @@ for j=1:siz(1)
                         xb(i)-(window-1)/2>0 && xb(i)+(window-1)/2<=siz(2) && ...
                         yt(i)-(window-1)/2>0 && yt(i)+(window-1)/2<=siz(1) && ...
                         xt(i)-(window-1)/2>0 && xt(i)+(window-1)/2<=siz(2) && ...
-                        point(tot_points,1)-(window-1)/2>0 && point(tot_points,1)+(window-1)/2<=siz(2) && ...
-                        point(tot_points,2)-(window-1)/2>0 && point(tot_points,2)+(window-1)/2<=siz(2)
+                        point(tot_points,1)-(window-1)/2>4 && point(tot_points,1)+(window-1)/2<=siz(1)-4 && ...
+                        point(tot_points,2)-(window-1)/2>4 && point(tot_points,2)+(window-1)/2<=siz(2)-4 
+                        % '4' above kept as tolerance against false zero flow
+                        % detection near image boundary
                     
                     corr_matr_b = I2(yb(i)-(window-1)/2:yb(i)+(window-1)/2,...
                         xb(i)-(window-1)/2:xb(i)+(window-1)/2)-...
@@ -153,7 +163,7 @@ for j=1:siz(1)
                     
                 end
             end
-
+            
             % sub pixel flow to refine flow magnitudes
             if if_sub_pixel
                 if best_i-1>=1 && best_i+1<=range+1   % matrix dimension is correct
@@ -224,6 +234,7 @@ for j=1:siz(1)
             if flow_mag(tot_points)>flow_thresh || isinf(best_corr) 
                 tot_points = tot_points - 1;
             end
+
             
         end
     end
@@ -234,14 +245,24 @@ point = point(1:tot_points,:);
 
 %% Plot optical flow with a stride
 
-stride = 5;
-flow_scale = 5;
+stride = 15;
+flow_scale = 1;
 if graphics
     figure(3); imshow(I1/255);
     hold on;
-%     quiver(point(1:stride:tot_points,2)',point(1:stride:tot_points,1)',...
-%         flow_mag(1:stride:tot_points).*cos(angle(1:stride:tot_points)),...
-%         -flow_mag(1:stride:tot_points).*sin(angle(1:stride:tot_points)),flow_scale,'Color','r');
+    quiver(point(1:stride:tot_points,2)',point(1:stride:tot_points,1)',...
+        flow_mag(1:stride:tot_points).*cos(angle(1:stride:tot_points)),...
+        -flow_mag(1:stride:tot_points).*sin(angle(1:stride:tot_points)),flow_scale,'Color','r');
 end
+
+% I1(201-(window-1)/2:201+(window-1)/2,...
+%                         201-(window-1)/2:201+(window-1)/2)
+% I2(211-(window-1)/2:211+(window-1)/2,...
+%                         211-(window-1)/2:211+(window-1)/2)                    
+% ppp = I2(211-(window-1)/2:211+(window-1)/2,...
+%                         211-(window-1)/2:211+(window-1)/2)-...
+%                         I1(201-(window-1)/2:201+(window-1)/2,...
+%                         201-(window-1)/2:201+(window-1)/2);
+%                     ppp1 = sum(sum(ppp.^2))
 
 end
