@@ -56,7 +56,7 @@ int main()
 
     // load images:
     IplImage *I1 = cvLoadImage("indoor.jpg",CV_8S);
-    IplImage *I2 = cvLoadImage("indoor_foe_200_200.jpg",CV_8S);
+    IplImage *I2 = cvLoadImage("indoor_foe_200_300.jpg",CV_8S);
 
     flow = get_optical_flow_edges(I1,I2,graphics);
     printf("\n Number of points %d",flow.tot_points);
@@ -149,8 +149,8 @@ void display_flow(opt_flow flow, float *FOE)
 {
     IplImage *I1 = cvLoadImage("indoor.jpg",CV_8S);
     for(int i=0;i<flow.tot_points;i=i+1)
-        cvLine(I1,cvPoint(flow.point[i][1]+400*sin(flow.angle[i]),flow.point[i][0]-400*cos(flow.angle[i])), \
-                  cvPoint(flow.point[i][1]-400*sin(flow.angle[i]),flow.point[i][0]+400*cos(flow.angle[i])), \
+        cvLine(I1,cvPoint(flow.point[i][1]+400*sin(flow.angle[i]),flow.point[i][0]+400*cos(flow.angle[i])), \
+                  cvPoint(flow.point[i][1]-400*sin(flow.angle[i]),flow.point[i][0]-400*cos(flow.angle[i])), \
                           cvScalar(0,0,255),1,8,0);
     for(int i=0;i<flow.tot_points;i=i+1)
             {
@@ -274,7 +274,7 @@ opt_flow random_sample(opt_flow flow, int n)
 {
     if(n>flow.tot_points)           // in case of limited flow vectors
     {
-        printf("\n Full sampling! ");
+        printf("\n Full sampling inside RANSAC! ");
         n = flow.tot_points;
     }
 

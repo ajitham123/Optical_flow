@@ -1,9 +1,12 @@
-function [point, flow_mag, angle] = get_optical_flow_edges(I1, I2, graphics,if_sub_pixel)
+function [point, flow_mag, angle] = get_optical_flow_edges(I1, I2, graphics,if_sub_pixel,if_ssd)
 %% Program to find the optical flow perpendicular to the edges in the image
 %  Author: Ajith Anil Meera, 28th July 2017
-
+% figure(3); imshow(I1);
+%     hold on;
 if(~exist('graphics', 'var') || isempty(graphics))
     graphics = false;
+    if_sub_pixel = false;
+    if_ssd = true;
 end
 
 %% Evaluate image gradient
@@ -12,7 +15,8 @@ if(size(I1,3) == 3)
     I2 = rgb2gray(I2);
 end
 
-% I1 = imgaussfilt(I1,2);
+%  I1 = imgaussfilt(I1,2);
+%  I2 = imgaussfilt(I2,2);
 % I1 = imboxfilt(I1,3);
 % I1 = medfilt2(I1);
 siz = size(I1);
@@ -124,17 +128,34 @@ for j=1:siz(1)
                         % '4' above kept as tolerance against false zero flow
                         % detection near image boundary
                     
-                    corr_matr_b = I2(yb(i)-(window-1)/2:yb(i)+(window-1)/2,...
-                        xb(i)-(window-1)/2:xb(i)+(window-1)/2)-...
-                        I1(point(tot_points,1)-(window-1)/2:point(tot_points,1)+(window-1)/2,...
-                        point(tot_points,2)-(window-1)/2:point(tot_points,2)+(window-1)/2);
-                    corr_b = sum(sum(corr_matr_b.^2));
-                    
-                    corr_matr_t = I2(yt(i)-(window-1)/2:yt(i)+(window-1)/2,...
-                        xt(i)-(window-1)/2:xt(i)+(window-1)/2)-...
-                        I1(point(tot_points,1)-(window-1)/2:point(tot_points,1)+(window-1)/2,...
-                        point(tot_points,2)-(window-1)/2:point(tot_points,2)+(window-1)/2);
-                    corr_t = sum(sum(corr_matr_t.^2));
+                        if if_ssd   
+                            % SSD correlation
+                            corr_matr_b = I2(yb(i)-(window-1)/2:yb(i)+(window-1)/2,...
+                                xb(i)-(window-1)/2:xb(i)+(window-1)/2)-...
+                                I1(point(tot_points,1)-(window-1)/2:point(tot_points,1)+(window-1)/2,...
+                                point(tot_points,2)-(window-1)/2:point(tot_points,2)+(window-1)/2);
+                            corr_b = sum(sum(corr_matr_b.^2));
+                            
+                            corr_matr_t = I2(yt(i)-(window-1)/2:yt(i)+(window-1)/2,...
+                                xt(i)-(window-1)/2:xt(i)+(window-1)/2)-...
+                                I1(point(tot_points,1)-(window-1)/2:point(tot_points,1)+(window-1)/2,...
+                                point(tot_points,2)-(window-1)/2:point(tot_points,2)+(window-1)/2);
+                            corr_t = sum(sum(corr_matr_t.^2));
+                            
+                        else
+                            % SAD corelation
+                            corr_matr_b = I2(yb(i)-(window-1)/2:yb(i)+(window-1)/2,...
+                                xb(i)-(window-1)/2:xb(i)+(window-1)/2)-...
+                                I1(point(tot_points,1)-(window-1)/2:point(tot_points,1)+(window-1)/2,...
+                                point(tot_points,2)-(window-1)/2:point(tot_points,2)+(window-1)/2);
+                            corr_b = sum(sum(abs(corr_matr_b)));
+                            
+                            corr_matr_t = I2(yt(i)-(window-1)/2:yt(i)+(window-1)/2,...
+                                xt(i)-(window-1)/2:xt(i)+(window-1)/2)-...
+                                I1(point(tot_points,1)-(window-1)/2:point(tot_points,1)+(window-1)/2,...
+                                point(tot_points,2)-(window-1)/2:point(tot_points,2)+(window-1)/2);
+                            corr_t = sum(sum(abs(corr_matr_t)));
+                        end
                     
                     % store all the correlation values to plot
                     all_corr(range+2-i) = corr_b;
@@ -200,10 +221,13 @@ for j=1:siz(1)
             end
             
             % Plot the correlation 
-%             tot_points
-%             h1 = figure(1); plot(-range:range,all_corr,'r-'); 
-%             xlabel('Search range perpendicular to edge pixel');
-%             ylabel('SSD Correlation');
+%             if tot_points == 8485    % 990, 8470
+%                 point(tot_points,:)
+%                 dist(best_match,[point(tot_points,2); point(tot_points,1)])
+%                 h1 = figure(1); plot(-range:range,all_corr,'r-');
+%                 xlabel('Search range perpendicular to edge pixel');
+%                 ylabel('SSD Correlation'); pause(.00001);
+%             end
             
             % Capture the figure and save as gif
 %             frame_gif = getframe(h1);
@@ -245,7 +269,7 @@ point = point(1:tot_points,:);
 
 %% Plot optical flow with a stride
 
-stride = 15;
+stride = 10;
 flow_scale = 1;
 if graphics
     figure(3); imshow(I1/255);
@@ -255,14 +279,6 @@ if graphics
         -flow_mag(1:stride:tot_points).*sin(angle(1:stride:tot_points)),flow_scale,'Color','r');
 end
 
-% I1(201-(window-1)/2:201+(window-1)/2,...
-%                         201-(window-1)/2:201+(window-1)/2)
-% I2(211-(window-1)/2:211+(window-1)/2,...
-%                         211-(window-1)/2:211+(window-1)/2)                    
-% ppp = I2(211-(window-1)/2:211+(window-1)/2,...
-%                         211-(window-1)/2:211+(window-1)/2)-...
-%                         I1(201-(window-1)/2:201+(window-1)/2,...
-%                         201-(window-1)/2:201+(window-1)/2);
-%                     ppp1 = sum(sum(ppp.^2))
+
 
 end
