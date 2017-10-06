@@ -89,25 +89,6 @@ xlabel 'FOE error (in pixels)'
 ylabel 'Count'
 
 
-%% Optical flow on image corners
-
-clc; clear all; close all;
-real_FOE = [50,50];
-
-% load images:
-I1 = imread('images/indoor.jpg');
-I2 = FOE_db(I1,real_FOE,1.02);
-
-corn = detectHarrisFeatures(rgb2gray(I1),'MinQuality',0.01,'ROI',...
-                                  [21,21,size(I1,2)-40,size(I1,1)-40]);
-imshow(I1); hold on; 
-% plot(corn.selectStrongest(3000));
-corn
-
-corn.plot;  hold on;
-corn.Count
-plot(300,100,'g*'); hold on;
-plot(corn.Location(:,1),corn.Location(:,2),'r*')
 
 
 
