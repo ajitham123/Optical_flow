@@ -9,3 +9,4 @@ find_foe.m - Function to find the FOE
 
 remove_outlier.m - Function to remove outlier tangent lines with zero flow magnitude
 
+The equivalent C code is main.cpp inside the c_optical_flow folder
