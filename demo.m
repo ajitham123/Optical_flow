@@ -4,10 +4,10 @@ graphics = true;
 im_scale = false;
 if_sub_pixel = true;
 if_ssd = true;
-real_FOE = [100,100];
+real_FOE = [300,300];
 
 % load images:
-I1 = imread('images/street.jpg');
+I1 = imread('images/indoor.jpg');
 % I2 = imread('images/frames57.jpg');
 I2 = FOE_db(I1,real_FOE,1.02);
 if im_scale
@@ -84,5 +84,31 @@ for i=stride:stride:size(I1,1)
 end
 fprintf("\n Mean error = %f ",mean(h_map(:)));
 heatmap(h_map)
+figure; histogram(h_map,'BinWidth',10);
+xlabel 'FOE error (in pixels)'
+ylabel 'Count'
+
+
+%% Optical flow on image corners
+
+clc; clear all; close all;
+real_FOE = [50,50];
+
+% load images:
+I1 = imread('images/indoor.jpg');
+I2 = FOE_db(I1,real_FOE,1.02);
+
+corn = detectHarrisFeatures(rgb2gray(I1),'MinQuality',0.01,'ROI',...
+                                  [21,21,size(I1,2)-40,size(I1,1)-40]);
+imshow(I1); hold on; 
+% plot(corn.selectStrongest(3000));
+corn
+
+corn.plot;  hold on;
+corn.Count
+plot(300,100,'g*'); hold on;
+plot(corn.Location(:,1),corn.Location(:,2),'r*')
+
+
 
 
